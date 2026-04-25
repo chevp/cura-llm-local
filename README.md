@@ -1,6 +1,6 @@
 # cura-llm-local
 
-Run an LLM locally via [Ollama](https://ollama.com/) in Docker. Default port `11434`. Persistent models in a named volume. Submodule of [cura](https://github.com/chevp/cura).
+Run an LLM locally via [Ollama](https://ollama.com/) in Docker. Default port `11434`. Persistent models in a named volume.
 
 📖 **Docs:** [chevp.github.io/cura-llm-local](https://chevp.github.io/cura-llm-local/)
 

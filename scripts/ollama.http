@@ -1,0 +1,41 @@
+@host = http://localhost:11434
+
+### Health check — sollte 200 OK + "Ollama is running" zurückgeben
+GET {{host}}/
+
+### Liste aller installierten Modelle
+GET {{host}}/api/tags
+
+### Version abfragen
+GET {{host}}/api/version
+
+### Prompt an ein Modell schicken (nicht-streaming)
+POST {{host}}/api/generate
+Content-Type: application/json
+
+{
+  "model": "llama3.2",
+  "prompt": "Sag Hallo auf Deutsch.",
+  "stream": false
+}
+
+### Chat-Endpoint (nicht-streaming)
+POST {{host}}/api/chat
+Content-Type: application/json
+
+{
+  "model": "llama3.2",
+  "stream": false,
+  "messages": [
+    { "role": "user", "content": "Was ist die Hauptstadt von Deutschland?" }
+  ]
+}
+
+### Modell pullen (falls noch keins installiert ist)
+POST {{host}}/api/pull
+Content-Type: application/json
+
+{
+  "name": "llama3.2",
+  "stream": false
+}

@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>cura-llm-local — Status</title>
+  <meta name="description" content="Live status page for the local Ollama server.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            arctic: {
+              50: '#f0f9ff', 100: '#e0f2fe', 200: '#bae6fd', 300: '#7dd3fc',
+              400: '#38bdf8', 500: '#0ea5e9', 600: '#0284c7', 700: '#0369a1',
+              800: '#075985', 900: '#0c4a6e',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    * { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+    code, pre, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .grid-bg {
+      background-image:
+        linear-gradient(rgba(59, 130, 246, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(59, 130, 246, 0.05) 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+    .diagonal-stripes {
+      background-image: repeating-linear-gradient(
+        45deg, transparent, transparent 10px,
+        rgba(255, 255, 255, 0.02) 10px, rgba(255, 255, 255, 0.02) 20px
+      );
+    }
+    .glass {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .gradient-text {
+      background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 50%, #2563eb 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+    }
+    .pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 10px; border-radius: 999px;
+      font-size: 11px; font-weight: 500;
+      background: rgba(59, 130, 246, 0.15);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      color: #93c5fd;
+    }
+    .pill.green { background: rgba(34, 197, 94, 0.12); border-color: rgba(34, 197, 94, 0.3); color: #86efac; }
+    .pill.red   { background: rgba(239, 68, 68, 0.12); border-color: rgba(239, 68, 68, 0.3); color: #fca5a5; }
+    .pill.amber { background: rgba(245, 158, 11, 0.12); border-color: rgba(245, 158, 11, 0.3); color: #fcd34d; }
+
+    .dot { width: 10px; height: 10px; border-radius: 999px; display: inline-block; }
+    .dot.up   { background: #22c55e; box-shadow: 0 0 12px rgba(34, 197, 94, 0.6); }
+    .dot.down { background: #ef4444; box-shadow: 0 0 12px rgba(239, 68, 68, 0.6); }
+    .dot.unk  { background: #f59e0b; box-shadow: 0 0 12px rgba(245, 158, 11, 0.6); }
+    .pulse { animation: pulse 1.4s infinite; }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%      { opacity: 0.35; }
+    }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 14px; border-radius: 8px;
+      font-size: 13px; font-weight: 500;
+      background: rgba(59, 130, 246, 0.15);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      color: #bfdbfe;
+      cursor: pointer; transition: all 0.2s ease;
+    }
+    .btn:hover { background: rgba(59, 130, 246, 0.3); }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    input.host-input {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(59, 130, 246, 0.25);
+      color: #e2e8f0;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      min-width: 240px;
+    }
+    input.host-input:focus { outline: none; border-color: rgba(59, 130, 246, 0.6); }
+
+    table { width: 100%; font-size: 13px; border-collapse: collapse; }
+    th { text-align: left; padding: 10px 16px; color: #cbd5e1; font-weight: 600;
+         border-bottom: 1px solid rgba(148, 163, 184, 0.15); font-size: 12px;
+         text-transform: uppercase; letter-spacing: 0.04em; }
+    td { padding: 10px 16px; color: #94a3b8; border-bottom: 1px solid rgba(148, 163, 184, 0.08); }
+    tr:last-child td { border-bottom: none; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen grid-bg">
+
+  <!-- Header -->
+  <header class="h-16 glass border-b border-slate-700/50 flex items-center justify-between px-6 diagonal-stripes sticky top-0 z-50">
+    <div class="flex items-center gap-4">
+      <a href="index.html" class="flex items-center gap-3 hover:opacity-80 transition-opacity">
+        <span class="material-symbols-outlined text-arctic-400 text-3xl">memory</span>
+        <h1 class="text-xl font-bold gradient-text">cura-llm-local</h1>
+      </a>
+      <span class="text-slate-600">/</span>
+      <span class="text-slate-300 text-sm font-medium">Status</span>
+    </div>
+    <div class="flex items-center gap-4">
+      <a href="index.html" class="text-slate-400 hover:text-slate-200 transition-colors text-sm">← Back to docs</a>
+    </div>
+  </header>
+
+  <main class="max-w-4xl mx-auto px-6 py-12">
+
+    <!-- Hero / overall status -->
+    <section class="text-center mb-10">
+      <div class="flex justify-center mb-4">
+        <span class="pill"><span class="material-symbols-outlined text-sm">monitoring</span> Live status</span>
+      </div>
+      <h2 class="text-3xl md:text-5xl font-bold mb-4 gradient-text">Local LLM Server</h2>
+      <div id="overall" class="flex justify-center items-center gap-3 text-lg">
+        <span id="overall-dot" class="dot unk pulse"></span>
+        <span id="overall-text" class="text-slate-300">Checking…</span>
+      </div>
+    </section>
+
+    <!-- Controls -->
+    <section class="glass rounded-xl p-5 mb-6 flex flex-wrap items-center gap-3 justify-between">
+      <div class="flex items-center gap-2 flex-wrap">
+        <label class="text-slate-400 text-sm">Host</label>
+        <input id="host" class="host-input" type="text" value="http://localhost:11434" />
+        <button id="refresh" class="btn">
+          <span class="material-symbols-outlined text-sm">refresh</span> Refresh
+        </button>
+      </div>
+      <label class="flex items-center gap-2 text-slate-400 text-sm cursor-pointer">
+        <input id="auto" type="checkbox" class="accent-arctic-500" checked>
+        Auto-refresh (5 s)
+      </label>
+    </section>
+
+    <!-- Stat cards -->
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <div class="glass rounded-xl p-5">
+        <div class="flex items-center gap-2 text-slate-400 text-xs uppercase tracking-wider mb-2">
+          <span class="material-symbols-outlined text-sm">cloud</span> Reachable
+        </div>
+        <div id="stat-reach" class="text-2xl font-bold text-slate-100">—</div>
+      </div>
+      <div class="glass rounded-xl p-5">
+        <div class="flex items-center gap-2 text-slate-400 text-xs uppercase tracking-wider mb-2">
+          <span class="material-symbols-outlined text-sm">tag</span> Version
+        </div>
+        <div id="stat-version" class="text-2xl font-bold mono text-arctic-300">—</div>
+      </div>
+      <div class="glass rounded-xl p-5">
+        <div class="flex items-center gap-2 text-slate-400 text-xs uppercase tracking-wider mb-2">
+          <span class="material-symbols-outlined text-sm">timer</span> Latency
+        </div>
+        <div id="stat-latency" class="text-2xl font-bold mono text-arctic-300">—</div>
+      </div>
+    </section>
+
+    <!-- Models -->
+    <section class="glass rounded-xl overflow-hidden mb-6">
+      <div class="px-5 py-4 flex items-center justify-between border-b border-slate-700/30">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-arctic-400">smart_toy</span>
+          <h3 class="font-semibold text-slate-100">Installed models</h3>
+        </div>
+        <span id="models-count" class="pill">0</span>
+      </div>
+      <div id="models-body">
+        <div class="px-5 py-10 text-center text-slate-500 text-sm">Loading…</div>
+      </div>
+    </section>
+
+    <!-- Last check / errors -->
+    <section class="text-slate-500 text-xs flex items-center justify-between">
+      <span>Last check: <span id="last-check" class="mono text-slate-400">—</span></span>
+      <span id="error-msg" class="text-red-300/80"></span>
+    </section>
+
+    <!-- CORS hint -->
+    <details class="glass rounded-xl p-5 mt-8 text-sm">
+      <summary class="cursor-pointer flex items-center gap-2 text-slate-300 font-medium">
+        <span class="material-symbols-outlined text-arctic-400 text-base">help</span>
+        CORS-Fehler? So fixt du das.
+      </summary>
+      <div class="mt-3 text-slate-400 space-y-2">
+        <p>Wird die Seite von einem anderen Origin geladen (z. B. GitHub Pages, <code class="mono text-arctic-300">file://</code>),
+           blockt der Browser Anfragen an <code class="mono text-arctic-300">localhost:11434</code>.</p>
+        <p>Setze <code class="mono text-arctic-300">OLLAMA_ORIGINS</code> in deiner <code class="mono text-arctic-300">.env</code>
+           (z. B. <code class="mono text-arctic-300">OLLAMA_ORIGINS=*</code> für lokale Entwicklung) und starte den Container neu:</p>
+        <pre class="bg-slate-900/60 border border-arctic-500/15 rounded-lg p-3 text-xs text-slate-300">docker compose down &amp;&amp; docker compose up -d</pre>
+      </div>
+    </details>
+  </main>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const hostInput = $('host');
+    const refreshBtn = $('refresh');
+    const autoBox = $('auto');
+    let timer = null;
+
+    function setOverall(state, text) {
+      const dot = $('overall-dot');
+      dot.className = 'dot ' + state + (state === 'unk' ? ' pulse' : '');
+      $('overall-text').textContent = text;
+    }
+
+    function fmtBytes(b) {
+      if (!b && b !== 0) return '—';
+      const u = ['B', 'KB', 'MB', 'GB', 'TB'];
+      let i = 0;
+      while (b >= 1024 && i < u.length - 1) { b /= 1024; i++; }
+      return b.toFixed(b < 10 ? 2 : 1) + ' ' + u[i];
+    }
+
+    function fmtDate(s) {
+      if (!s) return '—';
+      try {
+        const d = new Date(s);
+        return d.toLocaleString();
+      } catch { return s; }
+    }
+
+    function escape(s) {
+      return String(s).replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+    }
+
+    async function fetchJSON(url, ms = 4000) {
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), ms);
+      try {
+        const res = await fetch(url, { signal: ctrl.signal, cache: 'no-store' });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return await res.json();
+      } finally { clearTimeout(t); }
+    }
+
+    async function check() {
+      const host = hostInput.value.replace(/\/+$/, '');
+      $('error-msg').textContent = '';
+      const t0 = performance.now();
+
+      let reachable = false;
+      try {
+        const res = await fetch(host + '/', { cache: 'no-store' });
+        reachable = res.ok;
+      } catch (e) {
+        $('error-msg').textContent = 'Fetch fehlgeschlagen: ' + e.message;
+      }
+      const latency = Math.round(performance.now() - t0);
+
+      $('stat-reach').textContent = reachable ? 'Yes' : 'No';
+      $('stat-reach').className = 'text-2xl font-bold ' + (reachable ? 'text-green-300' : 'text-red-300');
+      $('stat-latency').textContent = reachable ? latency + ' ms' : '—';
+
+      if (!reachable) {
+        setOverall('down', 'Server nicht erreichbar');
+        $('stat-version').textContent = '—';
+        $('models-count').textContent = '0';
+        $('models-body').innerHTML = '<div class="px-5 py-10 text-center text-slate-500 text-sm">Keine Verbindung.</div>';
+      } else {
+        setOverall('up', 'Server läuft');
+        try {
+          const v = await fetchJSON(host + '/api/version');
+          $('stat-version').textContent = v.version || '—';
+        } catch { $('stat-version').textContent = '?'; }
+
+        try {
+          const data = await fetchJSON(host + '/api/tags');
+          const models = data.models || [];
+          $('models-count').textContent = String(models.length);
+          if (!models.length) {
+            $('models-body').innerHTML =
+              '<div class="px-5 py-10 text-center text-slate-500 text-sm">Noch kein Modell installiert. ' +
+              'Mit <code class="mono text-arctic-300">docker exec ollama ollama pull llama3.2</code> ein Modell laden.</div>';
+          } else {
+            const rows = models.map(m => `
+              <tr>
+                <td class="mono text-arctic-300">${escape(m.name || '')}</td>
+                <td>${escape(m.details?.parameter_size || '—')}</td>
+                <td>${escape(m.details?.quantization_level || '—')}</td>
+                <td>${fmtBytes(m.size)}</td>
+                <td class="text-slate-500">${escape(fmtDate(m.modified_at))}</td>
+              </tr>`).join('');
+            $('models-body').innerHTML = `
+              <table>
+                <thead>
+                  <tr>
+                    <th>Name</th><th>Params</th><th>Quant</th><th>Size</th><th>Modified</th>
+                  </tr>
+                </thead>
+                <tbody>${rows}</tbody>
+              </table>`;
+          }
+        } catch (e) {
+          $('models-body').innerHTML =
+            `<div class="px-5 py-10 text-center text-red-300/80 text-sm">Modelliste fehlgeschlagen: ${escape(e.message)}</div>`;
+        }
+      }
+
+      $('last-check').textContent = new Date().toLocaleTimeString();
+    }
+
+    function scheduleAuto() {
+      if (timer) { clearInterval(timer); timer = null; }
+      if (autoBox.checked) timer = setInterval(check, 5000);
+    }
+
+    refreshBtn.addEventListener('click', check);
+    autoBox.addEventListener('change', scheduleAuto);
+    hostInput.addEventListener('change', check);
+
+    check();
+    scheduleAuto();
+  </script>
+</body>
+</html>
