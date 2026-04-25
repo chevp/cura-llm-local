@@ -1,14 +1,15 @@
 ---
-id: exp(001)
+id: exp-001
 title: Network exposure hardening — CORS allowlist & loopback binding
 exploration-mode: B
-status: proposed
+status: accepted-via-override
 proposed-by: ai
 decided-by: —
 approved-by: —
 approved-at: —
 created: 2026-04-25
-related-adr: adr(001)
+related-adr: adr-001
+override-note: G2 gate-overridden 2026-04-25 (see governance-log.md, transitive via prd-001)
 ---
 
 ## Problem statement
@@ -39,14 +40,14 @@ Goal: harden both layers without adding infrastructure (reverse proxy, auth toke
 2. **`localhost` vs `127.0.0.1` divergence.** Some macOS configs (custom `/etc/hosts`, mDNS edge cases) treat them differently. Mitigation: include both in the allowlist; test the chat with both endpoints.
 3. **Wildcard-port handling unclear.** Ollama documents `http://localhost:*` syntax, but actual behavior across versions is undocumented. Mitigation: enumerate the exact dev ports we use (5500 Live Server, 8080 Python http.server, 5173 Vite) explicitly in fallback, and pin the `ollama/ollama` image tag we test against.
 4. **GPU override inheritance.** `docker-compose.gpu.yml` does not redeclare `ports`; under compose merge rules the base bind should apply unchanged — but this must be explicitly verified during PRD step.
-5. **Out-of-scope origin (GitHub Pages).** If `docs/chat.html` is also accessed via `https://chevp.github.io`, that origin is currently unspecified and would break under the new allowlist. *Decision needed before PRD: include GitHub Pages origin in the default allowlist, or document as "local-file-only / sowuvuma-only"?*
+5. **GitHub Pages origin must be in the default allowlist.** *Resolved 2026-04-25:* `docs/chat.html` is publicly served via GitHub Pages (`https://chevp.github.io/...`) as the canonical demo URL. Therefore `https://chevp.github.io` is in scope for the **default** committed `.env.example` allowlist — the demo must work out-of-the-box for anyone who clones and runs. Production origin `https://cura.sowuvuma.cyon.site` remains opt-in via the user's local `.env`.
 
 ## Candidates (≥2 comparable)
 
 ### Candidate A — Direct hardening: env-driven allowlist + loopback bind *(recommended)*
 
 - New env var `OLLAMA_ORIGINS` in `.env.example`, passed through `docker-compose.yml` to the container.
-- Default allowlist covers local development origins (`http://localhost`, `http://localhost:*`, `http://127.0.0.1`, `http://127.0.0.1:*`).
+- Default allowlist covers local development origins (`http://localhost`, `http://localhost:*`, `http://127.0.0.1`, `http://127.0.0.1:*`) **plus** the public demo origin `https://chevp.github.io` (so the GitHub-Pages-hosted `chat.html` works without local config).
 - Production users add `https://cura.sowuvuma.cyon.site` to their local `.env`.
 - Port bind changed to `127.0.0.1:${OLLAMA_PORT:-11434}:11434`.
 - `docs/chat.html:85-86` error hint rewritten to point at the explicit allowlist pattern (no more `OLLAMA_ORIGINS=*`).
@@ -113,6 +114,8 @@ The exploration **proceeds with note** (not killed) if:
 
 ### In scope
 - Add `OLLAMA_ORIGINS` to `.env.example` and pass through `docker-compose.yml` env block.
+- Default allowlist value covers: `http://localhost`, `http://localhost:*`, `http://127.0.0.1`, `http://127.0.0.1:*`, `https://chevp.github.io`.
+- Document `https://cura.sowuvuma.cyon.site` as the production opt-in (in `.env.example` comment, not in the default).
 - Change port bind in `docker-compose.yml` to `127.0.0.1:${OLLAMA_PORT:-11434}:11434`.
 - Update `docs/chat.html` error hint at lines 85-86 to reflect the new allowlist pattern (no `*`).
 - Document the change in `README.md` (security section, new or updated).
@@ -123,13 +126,12 @@ The exploration **proceeds with note** (not killed) if:
 - API-key authentication for Ollama
 - Rate-limiting / abuse protection
 - Multi-user Ollama setups
-- GitHub Pages access pattern (depends on user decision per Risk #5)
 
 ## Evidence block
 
 ```yaml
 evidence:
   hypothesis: A two-layer hardening (CORS allowlist + loopback bind) is sufficient for the browser→own-localhost-Ollama threat model and avoids the operational cost of a reverse proxy or TLS termination.
-  result:     to be filled at G2 review with verification logs (browser console clean, curl from second device fails, fetch from non-listed origin blocked)
-  reasoning:  to be filled at G2 review based on result vs. kill criteria
+  result:     H2 confirmed (200/403 split on positive/negative origin, wildcard ports work). H3 host-side confirmed (lsof shows 127.0.0.1:11434 LISTEN only). V4 confirmed (GPU override preserves host_ip via compose merge). H1 + H3-LAN flagged as manual verification — non-blocking. See exp-001-insights.md.
+  reasoning:  Both layers operate independently and were validated against the kill criteria. Stronger-than-expected behavior (403 on disallowed preflight) gives clearer diagnostics. No surprises that change the candidate choice. PRD shipped.
 ```

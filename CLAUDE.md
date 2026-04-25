@@ -85,7 +85,7 @@ context/
 └── specs/                     ← feature specifications
 ```
 
-ADR / plan IDs use prefixes: `ctx(NNN)` · `exp(NNN)` · `prd(NNN)` · `PROP-NNN`.
+ADR / plan IDs use kebab-case prefixes: `ctx-NNN` · `exp-NNN` · `prd-NNN` · `adr-NNN` · `PROP-NNN`. Filenames mirror the ID (`exp-001-foo.md`). Never use parens (`exp(001)` etc.) — neither in filenames nor in IDs/prose/frontmatter.
 
 ---
 
@@ -142,7 +142,7 @@ No step is ever entirely skipped. Human approval is always required.
 ## Commit & delivery rules
 
 - Stage **specific** files only — never `git add .` / `git add -A`.
-- Prefix commits: `ctx(NNN):` · `exp(NNN):` · `prd(NNN):` · or conventional (`chore:`, `fix:`, `docs:`) for non-governed changes.
+- Prefix commits: `ctx-NNN:` · `exp-NNN:` · `prd-NNN:` · or conventional (`chore:`, `fix:`, `docs:`) for non-governed changes.
 - Messages explain **what + why**, not the diff.
 - Never commit non-compiling code, never `--no-verify`, never `--force-push` without explicit instruction.
 - Never commit/push unless asked.

@@ -65,6 +65,17 @@ For a basic RAG stack (chat + embeddings):
 ./scripts/setup-rag.sh
 ```
 
+## Security: who can reach Ollama
+
+Ollama runs without authentication, so two layers protect the API:
+
+- **Loopback bind** — `docker-compose.yml` publishes the port as `127.0.0.1:11434`, **not** `0.0.0.0`. The container is reachable only from the host machine, not from LAN peers.
+- **CORS allowlist** — the `OLLAMA_ORIGINS` env var (set in `.env` or via the safe default in `docker-compose.yml`) lists exactly which browser origins may call the API. The default covers `localhost` / `127.0.0.1` (any port) and the public GitHub Pages demo at `https://chevp.github.io`. Add your own webapp origin in your local `.env`, e.g. `https://cura.sowuvuma.cyon.site`.
+
+**Never set `OLLAMA_ORIGINS=*`** — that lets any internet page drive your local Ollama as soon as you open it in your browser. Background and trade-offs: see [`context/adr/adr-001-ollama-origin-allowlist-and-loopback-bind.md`](context/adr/adr-001-ollama-origin-allowlist-and-loopback-bind.md).
+
+Open `docs/chat.html` via a local HTTP server (e.g. `python3 -m http.server 5500` in `docs/`, then `http://localhost:5500/chat.html`) or via the GitHub Pages URL — `file://` gives Origin `null`, which is intentionally not whitelisted.
+
 ## Stop / clean up
 
 ```bash

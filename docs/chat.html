@@ -131,9 +131,21 @@
         <i class="fa-solid fa-triangle-exclamation"></i> Verbindung zum LLM-Server fehlgeschlagen
       </div>
       <div id="err-text" class="text-rose-200/90 mb-2">—</div>
-      <div class="text-rose-200/80 text-xs">
-        Lösung: in <code class="mono">.env</code> <code class="mono">OLLAMA_ORIGINS=*</code> setzen, dann
-        <code class="mono">docker compose down &amp;&amp; docker compose up -d</code> ausführen.
+      <div class="text-rose-200/80 text-xs space-y-1">
+        <div>
+          Diese Seite muss über einen lokalen HTTP-Server (z. B.
+          <code class="mono">python3 -m http.server 5500</code> in <code class="mono">docs/</code>, dann
+          <code class="mono">http://localhost:5500/chat.html</code>) oder die GitHub-Pages-URL aufgerufen werden —
+          nicht per Doppelklick (<code class="mono">file://</code>), sonst ist die Origin <code class="mono">null</code>
+          und wird bewusst nicht freigegeben.
+        </div>
+        <div>
+          Eigene Origin freischalten: in <code class="mono">.env</code> an
+          <code class="mono">OLLAMA_ORIGINS</code> anhängen, z. B.
+          <code class="mono">,https://deine-domain.example</code>, dann
+          <code class="mono">docker compose down &amp;&amp; docker compose up -d</code>. Niemals
+          <code class="mono">OLLAMA_ORIGINS=*</code> — das öffnet jeden Webseite den Zugriff auf den lokalen Ollama.
+        </div>
       </div>
     </div>
 

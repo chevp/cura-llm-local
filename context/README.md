@@ -12,5 +12,5 @@ plans/
 specs/          Feature specifications
 ```
 
-Plan ID prefixes: `ctx(NNN)` · `exp(NNN)` · `prd(NNN)` · `PROP-NNN`.
+Plan ID prefixes (kebab-case, no parens): `ctx-NNN` · `exp-NNN` · `prd-NNN` · `adr-NNN` · `PROP-NNN`. Filenames mirror the ID — e.g. `exp-001-foo.md`.
 Every governed artifact carries provenance frontmatter (`proposed-by` / `decided-by` / `approved-by` / `approved-at`) — the AI fills only `proposed-by`.
