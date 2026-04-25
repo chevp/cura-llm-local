@@ -1,0 +1,4 @@
+title: cura-llm-local
+description: Run an LLM locally in Docker — Ollama, ready for chat and RAG.
+url: https://chevp.github.io
+baseurl: /cura-llm-local
