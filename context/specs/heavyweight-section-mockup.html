@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UX prototype — Heavyweight tier section (exp-002)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            arctic: {
+              50: '#f0f9ff', 100: '#e0f2fe', 200: '#bae6fd', 300: '#7dd3fc',
+              400: '#38bdf8', 500: '#0ea5e9', 600: '#0284c7', 700: '#0369a1',
+              800: '#075985', 900: '#0c4a6e',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    * { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+    code, pre, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .grid-bg {
+      background-image:
+        linear-gradient(rgba(59, 130, 246, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(59, 130, 246, 0.05) 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+    .glass {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .gradient-text {
+      background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 50%, #2563eb 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 10px; border-radius: 999px;
+      font-size: 11px; font-weight: 500;
+      background: rgba(59, 130, 246, 0.15);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      color: #93c5fd;
+    }
+    .pill.amber { background: rgba(245, 158, 11, 0.12); border-color: rgba(245, 158, 11, 0.3); color: #fcd34d; }
+    .pill.red { background: rgba(239, 68, 68, 0.12); border-color: rgba(239, 68, 68, 0.3); color: #fca5a5; }
+
+    /* GPU-required caveat banner */
+    .caveat {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(239, 68, 68, 0.06));
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      border-radius: 12px;
+    }
+
+    /* Prototype scaffolding (not part of the eventual section) */
+    .proto-banner {
+      background: rgba(168, 85, 247, 0.12);
+      border-bottom: 1px solid rgba(168, 85, 247, 0.3);
+      color: #d8b4fe;
+      font-size: 12px;
+      padding: 8px 16px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen grid-bg">
+
+  <!-- Prototype scaffolding banner (would NOT ship in docs/index.html) -->
+  <div class="proto-banner">
+    <i class="fa-solid fa-flask"></i>
+    UX prototype — exp-002 — review this rendered in a browser before G2 approval. Not committed to docs/index.html.
+  </div>
+
+  <!-- The proposed section, exactly as it would appear in docs/index.html -->
+  <section id="heavyweight" class="max-w-4xl mx-auto px-6 py-16">
+    <h2 class="text-2xl md:text-3xl font-bold text-center mb-3 gradient-text">Heavyweight tier</h2>
+    <p class="text-slate-400 text-center mb-8">When you have a GPU and you want the good stuff.</p>
+
+    <!-- GPU caveat banner -->
+    <div class="caveat p-5 mb-8">
+      <div class="flex items-start gap-3">
+        <i class="fa-solid fa-triangle-exclamation text-amber-400 text-xl mt-0.5"></i>
+        <div class="text-sm">
+          <p class="text-amber-200 font-semibold mb-1">GPU required.</p>
+          <p class="text-slate-300 mb-2">
+            These models target Linux / Windows hosts with an NVIDIA GPU and <strong>≥ 24&nbsp;GB VRAM</strong>.
+            Use <code class="mono text-arctic-300">docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d</code>.
+          </p>
+          <p class="text-slate-300">
+            <span class="pill red"><i class="fa-brands fa-apple"></i> macOS Apple Silicon</span>
+            &nbsp;Do <strong>not</strong> attempt these locally. The Apple GPU is not exposed to Docker — inference falls back to CPU and these models will swap your machine into the ground.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Heavyweight model table -->
+    <div class="glass rounded-xl overflow-hidden">
+      <table class="w-full text-sm">
+        <thead class="border-b border-slate-700/50">
+          <tr class="text-slate-300">
+            <th class="text-left px-5 py-3 font-semibold">Model</th>
+            <th class="text-left px-5 py-3 font-semibold">Disk</th>
+            <th class="text-left px-5 py-3 font-semibold">VRAM</th>
+            <th class="text-left px-5 py-3 font-semibold">Use case</th>
+          </tr>
+        </thead>
+        <tbody class="text-slate-400">
+          <tr class="border-b border-slate-700/30">
+            <td class="px-5 py-3 mono text-arctic-300">llama3.1:70b-instruct-q4_K_M</td>
+            <td class="px-5 py-3">~40 GB</td>
+            <td class="px-5 py-3">≥ 48 GB</td>
+            <td class="px-5 py-3">Flagship general &amp; reasoning</td>
+          </tr>
+          <tr class="border-b border-slate-700/30">
+            <td class="px-5 py-3 mono text-arctic-300">qwen2.5:32b-instruct-q4_K_M</td>
+            <td class="px-5 py-3">~20 GB</td>
+            <td class="px-5 py-3">≥ 24 GB</td>
+            <td class="px-5 py-3">Strong coding &amp; multilingual</td>
+          </tr>
+          <tr class="border-b border-slate-700/30">
+            <td class="px-5 py-3 mono text-arctic-300">mixtral:8x7b-instruct-v0.1-q4_K_M</td>
+            <td class="px-5 py-3">~26 GB</td>
+            <td class="px-5 py-3">≥ 32 GB</td>
+            <td class="px-5 py-3">MoE — fast inference for its size</td>
+          </tr>
+          <tr>
+            <td class="px-5 py-3 mono text-arctic-300">deepseek-r1:32b</td>
+            <td class="px-5 py-3">~20 GB</td>
+            <td class="px-5 py-3">≥ 24 GB</td>
+            <td class="px-5 py-3">Reasoning specialist</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p class="text-slate-500 text-xs text-center mt-6">
+      <code class="mono text-arctic-300">q4_K_M</code> is the documented default — pull <code class="mono text-arctic-300">q5_K_M</code> or <code class="mono text-arctic-300">q8_0</code> if you have VRAM headroom and want quality over throughput.
+    </p>
+  </section>
+
+</body>
+</html>
